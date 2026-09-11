@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from typing import Any
 
 import httpx
-from nonebot import get_driver, on_command
+from nonebot import get_driver, on_command, require
 from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupMessageEvent,
@@ -14,16 +14,21 @@ from nonebot.exception import ActionFailed
 from nonebot.log import logger
 from nonebot.params import CommandArg
 
+from . import __version__
 from .config import CaveConfig
 from .media import MediaStore
 from .models import CaveEntry, CaveNotFound, CaveState, CooldownActive, InvalidState
 from .storage import CaveRepository
 
+require("nonebot_plugin_localstore")
+
+import nonebot_plugin_localstore as localstore  # noqa: E402
+
 config = CaveConfig.model_validate(get_driver().config.model_dump())
 superusers = {str(user_id) for user_id in get_driver().config.superusers}
 owners = config.cave_reviewers or superusers
 repository = CaveRepository(
-    config.cave_data_dir,
+    config.cave_data_dir or localstore.get_plugin_data_dir(),
     owners,
     config.cave_default_cooldown,
     config.cave_default_cooldown_unit,
@@ -229,7 +234,7 @@ async def handle_cave(bot: Bot, event: GroupMessageEvent, args: Message = Comman
             "cave: 随机抽取 | -a 投稿 | -g 查看 | -r 删除 | -m 动态 | -c 冷却 | -w 白名单"
         )
     if command == "-v":
-        await cave.finish("nonebot-plugin-cave-rebuilt 2.0.0")
+        await cave.finish(f"nonebot-plugin-cave-rebuilt {__version__}")
     await cave.finish(f"无法将 {command} 识别为有效参数。")
 
 

@@ -4,16 +4,36 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nonebot-plugin-cave-rebuilt"
-version = "2.0.0"
+version = "2.0.1"
 description = "A maintained rebuild of the NoneBot2 cave plugin"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
+authors = [{ name = "hmzz804" }]
+keywords = ["nonebot", "nonebot2", "onebot", "cave"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: AsyncIO",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "nonebot2>=2.2.0",
     "nonebot-adapter-onebot>=2.4.0",
+    "nonebot-plugin-localstore>=0.7.0",
     "httpx>=0.27.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/hmzz804/nonebot_plugin_cave_rebuilt"
+Repository = "https://github.com/hmzz804/nonebot_plugin_cave_rebuilt"
+Issues = "https://github.com/hmzz804/nonebot_plugin_cave_rebuilt/issues"
+Changelog = "https://github.com/hmzz804/nonebot_plugin_cave_rebuilt/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 test = ["pytest>=8.0", "pytest-asyncio>=0.23"]
