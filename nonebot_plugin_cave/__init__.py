@@ -13,4 +13,3 @@ __plugin_meta__ = PluginMetadata(
 )
 
 from . import handlers as handlers  # noqa: E402,F401
-

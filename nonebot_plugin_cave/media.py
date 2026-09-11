@@ -41,4 +41,3 @@ class MediaStore:
                 file = segment.get("data", {}).get("file") or segment.get("path")
                 if file:
                     Path(file).unlink(missing_ok=True)
-

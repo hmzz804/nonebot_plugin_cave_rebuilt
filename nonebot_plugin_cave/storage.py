@@ -108,7 +108,13 @@ class CaveRepository:
             cursor = self._db.execute(
                 "INSERT INTO caves(message_json, contributor_id, state, created_at, updated_at) "
                 "VALUES (?, ?, ?, ?, ?)",
-                (payload, str(contributor_id), CaveState.PENDING, created_at.isoformat(), created_at.isoformat()),
+                (
+                    payload,
+                    str(contributor_id),
+                    CaveState.PENDING,
+                    created_at.isoformat(),
+                    created_at.isoformat(),
+                ),
             )
             cave_id = int(cursor.lastrowid)
             self._record_activity(cave_id, CaveState.PENDING, str(contributor_id), created_at)
@@ -138,7 +144,9 @@ class CaveRepository:
                     "SELECT * FROM groups WHERE group_id = ?", (str(group_id),)
                 ).fetchone()
                 if group["last_draw_at"]:
-                    elapsed = (_now() - datetime.fromisoformat(group["last_draw_at"])).total_seconds()
+                    elapsed = (
+                        _now() - datetime.fromisoformat(group["last_draw_at"])
+                    ).total_seconds()
                     cooldown = group["cooldown_value"] * _UNIT_SECONDS[group["cooldown_unit"]]
                     if elapsed < cooldown:
                         raise CooldownActive(cooldown - elapsed)
@@ -160,7 +168,9 @@ class CaveRepository:
                 (target, changed_at.isoformat(), cave_id),
             )
             self._record_activity(cave_id, target, entry.contributor_id, changed_at)
-        return CaveEntry(entry.cave_id, entry.message, entry.contributor_id, target, entry.created_at)
+        return CaveEntry(
+            entry.cave_id, entry.message, entry.contributor_id, target, entry.created_at
+        )
 
     def moderate_all(self, approved: bool) -> int:
         ids = [entry.cave_id for entry in self.pending()]
@@ -200,10 +210,13 @@ class CaveRepository:
 
     def is_group_admin(self, group_id: str, user_id: str) -> bool:
         self.ensure_group(group_id)
-        return self._db.execute(
-            "SELECT 1 FROM group_admins WHERE group_id = ? AND user_id = ?",
-            (str(group_id), str(user_id)),
-        ).fetchone() is not None
+        return (
+            self._db.execute(
+                "SELECT 1 FROM group_admins WHERE group_id = ? AND user_id = ?",
+                (str(group_id), str(user_id)),
+            ).fetchone()
+            is not None
+        )
 
     def group_admins(self, group_id: str) -> list[str]:
         self.ensure_group(group_id)
@@ -231,12 +244,17 @@ class CaveRepository:
         return cursor.rowcount > 0
 
     def is_reviewer(self, user_id: str) -> bool:
-        return self._db.execute(
-            "SELECT 1 FROM reviewers WHERE user_id = ?", (str(user_id),)
-        ).fetchone() is not None
+        return (
+            self._db.execute(
+                "SELECT 1 FROM reviewers WHERE user_id = ?", (str(user_id),)
+            ).fetchone()
+            is not None
+        )
 
     def reviewers(self) -> list[str]:
-        return [row[0] for row in self._db.execute("SELECT user_id FROM reviewers ORDER BY user_id")]
+        return [
+            row[0] for row in self._db.execute("SELECT user_id FROM reviewers ORDER BY user_id")
+        ]
 
     def set_reviewer(self, user_id: str, enabled: bool) -> bool:
         with self._db:
@@ -265,11 +283,19 @@ class CaveRepository:
                     (rows[-1]["id"], str(group_id)),
                 )
         return [
-            Activity(row["id"], row["cave_id"], CaveState(row["state"]), row["contributor_id"], datetime.fromisoformat(row["created_at"]))
+            Activity(
+                row["id"],
+                row["cave_id"],
+                CaveState(row["state"]),
+                row["contributor_id"],
+                datetime.fromisoformat(row["created_at"]),
+            )
             for row in rows
         ]
 
-    def _record_activity(self, cave_id: int, state: CaveState, contributor_id: str, at: datetime) -> None:
+    def _record_activity(
+        self, cave_id: int, state: CaveState, contributor_id: str, at: datetime
+    ) -> None:
         self._db.execute(
             "INSERT INTO activities(cave_id, state, contributor_id, created_at) VALUES (?, ?, ?, ?)",
             (cave_id, state, contributor_id, at.isoformat()),
@@ -278,8 +304,11 @@ class CaveRepository:
     @staticmethod
     def _entry(row: sqlite3.Row) -> CaveEntry:
         return CaveEntry(
-            row["id"], json.loads(row["message_json"]), row["contributor_id"],
-            CaveState(row["state"]), datetime.fromisoformat(row["created_at"]),
+            row["id"],
+            json.loads(row["message_json"]),
+            row["contributor_id"],
+            CaveState(row["state"]),
+            datetime.fromisoformat(row["created_at"]),
         )
 
     def _migrate_legacy_json(self) -> None:
@@ -294,7 +323,9 @@ class CaveRepository:
         with self._lock, self._db:
             for group_id, group in data.get("groups_dict", {}).items():
                 self.ensure_group(str(group_id))
-                self.set_cooldown(str(group_id), int(group.get("cd_num", 1)), group.get("cd_unit", "sec"))
+                self.set_cooldown(
+                    str(group_id), int(group.get("cd_num", 1)), group.get("cd_unit", "sec")
+                )
                 for user_id in group.get("white_A", []):
                     self.set_group_admin(str(group_id), str(user_id), True)
             for user_id in data.get("white_B", []):
@@ -304,7 +335,14 @@ class CaveRepository:
                 self._db.execute(
                     "INSERT OR IGNORE INTO caves(id, message_json, contributor_id, state, created_at, updated_at) "
                     "VALUES (?, ?, ?, ?, ?, ?)",
-                    (item["cave_id"], json.dumps(item["message"], ensure_ascii=False), str(item["contributor_id"]), int(item["state"]), created, created),
+                    (
+                        item["cave_id"],
+                        json.dumps(item["message"], ensure_ascii=False),
+                        str(item["contributor_id"]),
+                        int(item["state"]),
+                        created,
+                        created,
+                    ),
                 )
             self._db.execute(
                 "INSERT INTO metadata VALUES ('legacy_json_migrated', ?)", (_now().isoformat(),)

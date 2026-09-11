@@ -53,14 +53,28 @@ def test_activity_feed_has_per_group_cursor(repository: CaveRepository) -> None:
 
 
 def test_legacy_json_migration(tmp_path: Path) -> None:
-    (tmp_path / "data.json").write_text(json.dumps({
-        "groups_dict": {"9": {"cd_num": 3, "cd_unit": "min", "white_A": ["7"]}},
-        "white_B": ["8"],
-    }), encoding="utf-8")
-    (tmp_path / "cave.json").write_text(json.dumps([{
-        "cave_id": 12, "message": [{"type": "text", "text": "old"}],
-        "contributor_id": "6", "state": 0,
-    }]), encoding="utf-8")
+    (tmp_path / "data.json").write_text(
+        json.dumps(
+            {
+                "groups_dict": {"9": {"cd_num": 3, "cd_unit": "min", "white_A": ["7"]}},
+                "white_B": ["8"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "cave.json").write_text(
+        json.dumps(
+            [
+                {
+                    "cave_id": 12,
+                    "message": [{"type": "text", "text": "old"}],
+                    "contributor_id": "6",
+                    "state": 0,
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
     repo = CaveRepository(tmp_path)
     assert repo.get(12).message[0]["text"] == "old"
     assert repo.is_group_admin("9", "7")

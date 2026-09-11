@@ -3,7 +3,13 @@ from typing import Any
 
 import httpx
 from nonebot import get_driver, on_command
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageSegment, PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    GroupMessageEvent,
+    Message,
+    MessageSegment,
+    PrivateMessageEvent,
+)
 from nonebot.exception import ActionFailed
 from nonebot.log import logger
 from nonebot.params import CommandArg
@@ -22,7 +28,9 @@ repository = CaveRepository(
     config.cave_default_cooldown,
     config.cave_default_cooldown_unit,
 )
-media_store = MediaStore(repository.image_dir, config.cave_download_timeout, config.cave_max_image_bytes)
+media_store = MediaStore(
+    repository.image_dir, config.cave_download_timeout, config.cave_max_image_bytes
+)
 
 cave = on_command("cave", priority=10, block=True)
 setcave = on_command("setcave", priority=10, block=True)
@@ -50,7 +58,7 @@ def _serialise_message(message: Message, strip_prefix: str | None = None) -> lis
         if segment.type == "text" and strip_prefix and not stripped:
             data["text"] = str(data.get("text", "")).lstrip()
             if data["text"].startswith(strip_prefix):
-                data["text"] = data["text"][len(strip_prefix):].lstrip()
+                data["text"] = data["text"][len(strip_prefix) :].lstrip()
             stripped = True
             if not data["text"]:
                 continue
@@ -68,7 +76,11 @@ async def _nickname(bot: Bot, user_id: str) -> str:
 
 async def _render_entry(bot: Bot, entry: CaveEntry, title: str = "回声洞") -> Message:
     name = await _nickname(bot, entry.contributor_id)
-    return Message(f"{title} —— ({entry.cave_id})\n\n") + _message_from_stored(entry.message) + Message(f"\n—— {name}")
+    return (
+        Message(f"{title} —— ({entry.cave_id})\n\n")
+        + _message_from_stored(entry.message)
+        + Message(f"\n—— {name}")
+    )
 
 
 def _parse_target(message: Message, raw: str) -> str | None:
@@ -88,7 +100,13 @@ def _state_text(state: CaveState) -> str:
     }[state]
 
 
-async def _send_forward(bot: Bot, *, user_id: int | None = None, group_id: int | None = None, contents: Iterable[Message]) -> None:
+async def _send_forward(
+    bot: Bot,
+    *,
+    user_id: int | None = None,
+    group_id: int | None = None,
+    contents: Iterable[Message],
+) -> None:
     nodes = [MessageSegment.node_custom(bot.self_id, "bot", content) for content in contents]
     if group_id is not None:
         await bot.send_group_forward_msg(group_id=group_id, messages=nodes)
@@ -165,7 +183,9 @@ async def handle_cave(bot: Bot, event: GroupMessageEvent, args: Message = Comman
         if not activities:
             await cave.finish("暂无新增的回声洞处理。")
         contents = [
-            Message(f"回声洞 {item.cave_id}\n来自 {item.contributor_id}\n状态: {_state_text(item.state)}\n时间: {item.created_at.astimezone():%Y-%m-%d %H:%M:%S}")
+            Message(
+                f"回声洞 {item.cave_id}\n来自 {item.contributor_id}\n状态: {_state_text(item.state)}\n时间: {item.created_at.astimezone():%Y-%m-%d %H:%M:%S}"
+            )
             for item in activities
         ]
         await _send_forward(bot, group_id=event.group_id, contents=contents)
@@ -177,28 +197,46 @@ async def handle_cave(bot: Bot, event: GroupMessageEvent, args: Message = Comman
             await cave.finish("无法识别白名单子命令。")
         list_name = subcommand[0]
         action = subcommand[1]
-        allowed = user_id in superusers if list_name == "a" else user_id in owners or user_id in superusers
+        allowed = (
+            user_id in superusers
+            if list_name == "a"
+            else user_id in owners or user_id in superusers
+        )
         if not allowed:
             await cave.finish("无白名单管理权限。")
         if action == "g":
-            users = repository.group_admins(group_id) if list_name == "a" else repository.reviewers()
-            await cave.finish(("白名单 A" if list_name == "a" else "白名单 B") + ":\n" + ("\n".join(users) or "（空）"))
+            users = (
+                repository.group_admins(group_id) if list_name == "a" else repository.reviewers()
+            )
+            await cave.finish(
+                ("白名单 A" if list_name == "a" else "白名单 B")
+                + ":\n"
+                + ("\n".join(users) or "（空）")
+            )
         target = _parse_target(args, value)
         if target is None:
             await cave.finish("请提供 QQ 号或 @ 用户。")
         enabled = action == "a"
-        changed = repository.set_group_admin(group_id, target, enabled) if list_name == "a" else repository.set_reviewer(target, enabled)
-        await cave.finish(("操作成功。" if changed else "目标已处于该状态。"))
+        changed = (
+            repository.set_group_admin(group_id, target, enabled)
+            if list_name == "a"
+            else repository.set_reviewer(target, enabled)
+        )
+        await cave.finish("操作成功。" if changed else "目标已处于该状态。")
 
     if command == "-h":
-        await cave.finish("cave: 随机抽取 | -a 投稿 | -g 查看 | -r 删除 | -m 动态 | -c 冷却 | -w 白名单")
+        await cave.finish(
+            "cave: 随机抽取 | -a 投稿 | -g 查看 | -r 删除 | -m 动态 | -c 冷却 | -w 白名单"
+        )
     if command == "-v":
         await cave.finish("nonebot-plugin-cave-rebuilt 2.0.0")
     await cave.finish(f"无法将 {command} 识别为有效参数。")
 
 
 @setcave.handle()
-async def handle_setcave(bot: Bot, event: PrivateMessageEvent, args: Message = CommandArg()) -> None:
+async def handle_setcave(
+    bot: Bot, event: PrivateMessageEvent, args: Message = CommandArg()
+) -> None:
     user_id = event.get_user_id()
     if not (repository.is_reviewer(user_id) or user_id in owners or user_id in superusers):
         await setcave.finish("无审核权限。")
@@ -216,7 +254,9 @@ async def handle_setcave(bot: Bot, event: PrivateMessageEvent, args: Message = C
             await setcave.finish("请提供有效序号或 all。")
         except (CaveNotFound, InvalidState):
             await setcave.finish("此序号不存在、已删除或已被审核。")
-        await setcave.finish(f"操作成功，回声洞投稿 {entry.cave_id} {'通过' if approved else '未通过'}审核。")
+        await setcave.finish(
+            f"操作成功，回声洞投稿 {entry.cave_id} {'通过' if approved else '未通过'}审核。"
+        )
     if command == "-e":
         try:
             entry = repository.get(int(value))

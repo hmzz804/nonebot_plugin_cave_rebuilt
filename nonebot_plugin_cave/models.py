@@ -45,4 +45,3 @@ class CooldownActive(CaveError):
     def __init__(self, remaining_seconds: float) -> None:
         self.remaining_seconds = max(0.0, remaining_seconds)
         super().__init__(f"cooldown active for {self.remaining_seconds:.0f} seconds")
-
