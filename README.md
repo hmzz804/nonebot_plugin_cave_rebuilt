@@ -24,15 +24,14 @@ pip install nonebot-plugin-cave-rebuilt
 # 审核白名单 B 的管理者；未设置时使用 SUPERUSERS
 WHITE_B_OWNER=["123456"]
 
-# 以下均可选；CAVE_DATA_DIR 留空时由 nonebot-plugin-localstore 管理
-# CAVE_DATA_DIR=data/cave
+# 以下均可选
 CAVE_DEFAULT_COOLDOWN=1
 CAVE_DEFAULT_COOLDOWN_UNIT=sec
 CAVE_DOWNLOAD_TIMEOUT=15
 CAVE_MAX_IMAGE_BYTES=10485760
 ```
 
-默认数据目录由 `nonebot-plugin-localstore` 管理，可使用 `nb localstore` 查看。若指定的数据目录中存在旧版 `data.json` 与 `cave.json`，首次启动会自动导入 SQLite，且不会删除旧文件。
+数据目录由 `nonebot-plugin-localstore` 统一管理，可使用 `nb localstore` 查看。需要修改目录时，请配置 LocalStore 的 `LOCALSTORE_USE_CWD` 或 `LOCALSTORE_PLUGIN_DATA_DIR`，不要设置插件私有的数据目录选项。若 LocalStore 数据目录中存在旧版 `data.json` 与 `cave.json`，首次启动会自动导入 SQLite，且不会删除旧文件。
 
 ## 命令
 

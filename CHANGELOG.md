@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.2 - 2026-09-28
+
+- Load plugin settings through NoneBot's `get_plugin_config` API.
+- Delegate all data directory configuration to `nonebot-plugin-localstore`.
+
 ## 2.0.1 - 2026-09-11
 
 - Use `nonebot-plugin-localstore` for the default persistent data directory.

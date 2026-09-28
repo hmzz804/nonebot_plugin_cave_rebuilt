@@ -1,10 +1,7 @@
-from pathlib import Path
-
 from pydantic import BaseModel, Field
 
 
 class CaveConfig(BaseModel):
-    cave_data_dir: Path | None = None
     cave_reviewers: set[str] = Field(default_factory=set, alias="white_b_owner")
     cave_default_cooldown: int = 1
     cave_default_cooldown_unit: str = "sec"

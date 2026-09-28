@@ -2,7 +2,7 @@ from nonebot.plugin import PluginMetadata
 
 from .config import CaveConfig
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 __plugin_meta__ = PluginMetadata(
     name="回声洞",

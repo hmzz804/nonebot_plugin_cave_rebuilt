@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from typing import Any
 
 import httpx
-from nonebot import get_driver, on_command, require
+from nonebot import get_driver, get_plugin_config, on_command, require
 from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupMessageEvent,
@@ -24,11 +24,11 @@ require("nonebot_plugin_localstore")
 
 import nonebot_plugin_localstore as localstore  # noqa: E402
 
-config = CaveConfig.model_validate(get_driver().config.model_dump())
+config = get_plugin_config(CaveConfig)
 superusers = {str(user_id) for user_id in get_driver().config.superusers}
 owners = config.cave_reviewers or superusers
 repository = CaveRepository(
-    config.cave_data_dir or localstore.get_plugin_data_dir(),
+    localstore.get_plugin_data_dir(),
     owners,
     config.cave_default_cooldown,
     config.cave_default_cooldown_unit,
